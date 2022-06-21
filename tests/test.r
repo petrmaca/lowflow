@@ -14,15 +14,19 @@ tres
 bfim=baseflow_BFImax(dta1b[,R_mm_den],tres)
 ups4=Eckhardt_filter(dta1b[,R_mm_den],a=a,BFI_max = bfim)
 
+ups5 =  baseflow_HYSEP(dta1b[,R_mm_den], area_KM2=100, method="fixed")
+ups6 =  baseflow_HYSEP(dta1b[,R_mm_den], area_KM2=100, method="sliding")
+ups7 =  baseflow_HYSEP(dta1b[,R_mm_den], area_KM2=100, method="local")
 
 plot(dta1b[,R_mm_den], type="l")
 lines(ups,col="red")
 lines(ups2,col="blue")
 lines(ups3,col="green")
-lines(ups3,col="purple")
+lines(ups4,col="purple")
+lines(ups5,col="steelblue")
 
-
-
+resHYSEP =data.frame(fixed = ups5,sliding = ups6, local=ups7)
+plot(resHYSEP)
 # library(devtools)
 # install_github("cran/lfstat")
 # library(lfstat)
