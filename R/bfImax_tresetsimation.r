@@ -12,6 +12,7 @@ baseflow_BFImax <- function(Q, k){
   #      0.5 for ephemeral stream with porous aquifer
   #      0.25 for perennial stream with hardrock aquifer
   #    based on a few streams in eastern US
+  # https://github.com/samzipper/GlobalBaseflow/blob/master/src/BaseflowSeparationFunctions.R
   
   # start from end of timeseries
   bf <- rep(NaN, length(Q))
@@ -249,7 +250,7 @@ baseflow_RecessionConstant <- function(Q, UB_prc=0.95, method="Brutsaert", min_p
   #       
   # Output:
   #   k = recession constant
-  
+  # https://github.com/samzipper/GlobalBaseflow/blob/master/src/BaseflowSeparationFunctions.R
   ## package dependencies
   require(quantreg)  # used for quantile regression
   
