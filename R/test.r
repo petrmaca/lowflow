@@ -1,7 +1,7 @@
-library(lowflow)
+# library(lowflow)
 
 
-dta =read.table("/home/hubert/ownCloud/Shared/petr dp/discharge/daily/Q207290.txt",sep=";",skip=1)
+# dta =read.table("/home/hubert/ownCloud/Shared/petr dp/discharge/daily/Q207290.txt",sep=";",skip=1)
 
 a=0.95
 ups =baseflow_UKIH(dta$V4)
