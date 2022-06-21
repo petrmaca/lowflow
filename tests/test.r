@@ -31,25 +31,30 @@ lines(ups8,col="grey")
 
 resHYSEP =data.frame(fixed = ups6,sliding = ups7, local=ups8)
 plot(resHYSEP)
-# library(devtools)
-# install_github("cran/lfstat")
- library(lfstat)
-vmoT=TRUE
-if(vmoT){
-  wmoBF <- baseflow(dta1b[,R_mm_den])
-  plot(dta1b[,R_mm_den], type = "l")
-  lines(wmoBF, col = 2)
-  
-  resDF= data.frame(WMO = wmoBF, ukih=ups,LH=ups2,CH =ups3,CM=ups4,E = ups5,fixed =ups6,sliding = ups7, local=ups8)
-  plot(resDF)
-  
-  
-} else {
-  
-  resDF= data.frame(ukih=ups,LH=ups2,CH =ups3,EK=ups4)
-  plot(resDF)
-  resRLM = select.recessionlimbs(dta1b[,R_mm_den],minlength = 5)
-  plot(dta1b[,R_mm_den], type = "l")
-  points(resRLM$t,resRLM$Q,col=2,pch=19)
-  
-}
+# # library(devtools)
+# # install_github("cran/lfstat")
+#  library(lfstat)
+# vmoT=TRUE
+# if(vmoT){
+#   wmoBF <- baseflow(dta1b[,R_mm_den])
+#   plot(dta1b[,R_mm_den], type = "l")
+#   lines(wmoBF, col = 2)
+#   
+#   resDF= data.frame(WMO = wmoBF, ukih=ups,LH=ups2,CH =ups3,CM=ups4,E = ups5,fixed =ups6,sliding = ups7, local=ups8)
+#   plot(resDF)
+#   
+#   
+# } else {
+#   
+#   resDF= data.frame(ukih=ups,LH=ups2,CH =ups3,EK=ups4)
+#   plot(resDF)
+#   resRLM = select.recessionlimbs(dta1b[,R_mm_den],minlength = 5)
+#   plot(dta1b[,R_mm_den], type = "l")
+#   points(resRLM$t,resRLM$Q,col=2,pch=19)
+#   
+# }
+# resDF= data.frame(WMO = wmoBF, ukih=ups,LH=ups2,CH =ups3,CM=ups4,E = ups5,fixed =ups6,sliding = ups7, local=ups8)
+# wmoBF from lfstat similar to UKIH
+
+resDF= data.frame(ukih=ups,LH=ups2,CH =ups3,CM=ups4,E = ups5,fixed =ups6,sliding = ups7, local=ups8)
+cor(resDF,use="pairwise.complete.obs")
