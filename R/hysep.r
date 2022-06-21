@@ -11,6 +11,7 @@ baseflow_HYSEP <- function(Q, area_KM2, method=NULL){
   # Output:
   #   bf = baseflow timeseries, same length and units as Q
   
+  #   https://github.com/samzipper/GlobalBaseflow/blob/master/src/BaseflowSeparationFunctions.R
   ## package dependencies
   require(zoo)
   require(dplyr)

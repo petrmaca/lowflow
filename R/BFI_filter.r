@@ -15,8 +15,25 @@ LH_filter = function(Q, a){
 } 
 
 ##Chapman Filter which is equal to same filter ith Echartds BFI_MAX = O.5#####
-
+# paper https://agupubs.onlinelibrary.wiley.com/doi/epdf/10.1029/91WR01007
 Chapman_filter = function(Q, a){
+  n <- length(Q)
+  b <-Q
+  b[1] <- Q[1]
+  for(i in 2:n){
+    if(b[i-1] < Q[i]) {
+      f<- (3*a-1) / (3-a) * b[i-1] + (2) / (3-a) * (Q[i] - a*Q[i-1])
+      b[i] <- (a) * b[i-1] + 1 / 2 *(1-a) * (f + (Q[i-1]-b[i-1]))
+    } else if( b[i-1] > Q[i]){
+      b[i] = Q[i]
+    }
+  }
+  return(b)
+}
+
+##Chapman MAxwell Filter which is equal to same filter ith Echartds BFI_MAX = O.5#####
+
+Chapman_MAxwell_filter = function(Q, a){
   n <- length(Q)
   b <-Q
   b[1] <- Q[1]
