@@ -2,10 +2,7 @@
 library(data.table)
 
 
-dtaC = readRDS("tests/data/Q_R_151_POV.rds")
-dtaC[,OLA:= paste0("UPS",ID,"aqh")]
-# dtaC[,ID:=NULL]
-
+dtaC = readRDS("tests/data/QRdta151.rds")
 dta1b =dtaC[OLA=="UPS003000aqh",]
 a=0.95
 ups =baseflow_UKIH(dta1b[,R_mm_den])
@@ -31,26 +28,22 @@ lines(ups3,col="purple")
 # library(lfstat)
 vmoT=TRUE
 if(vmoT){
-  # wmoBF <- baseflow(dta1b[,R_mm_den])
-  # plot(dta1b[,R_mm_den], type = "l")
-  # lines(wmoBF, col = 2)
+  wmoBF <- baseflow(dta1b[,R_mm_den])
+  plot(dta1b[,R_mm_den], type = "l")
+  lines(wmoBF, col = 2)
   
   resDF= data.frame(WMO = wmoBF, ukih=ups,LH=ups2,CH =ups3,EK=ups4)
   plot(resDF)
   
   
+  
+  
+} else {
+  
+  resDF= data.frame(ukih=ups,LH=ups2,CH =ups3,EK=ups4)
+  plot(resDF)
   resRLM = select.recessionlimbs(dta1b[,R_mm_den],minlength = 5)
   plot(dta1b[,R_mm_den], type = "l")
   points(resRLM$t,resRLM$Q,col=2,pch=19)
   
-  
 }
-
-resDF= data.frame(ukih=ups,LH=ups2,CH =ups3,EK=ups4)
-plot(resDF)
-
-
-resRLM = select.recessionlimbs(dta1b[,R_mm_den],minlength = 5)
-plot(dta1b[,R_mm_den], type = "l")
-points(resRLM$t,resRLM$Q,col=2,pch=19)
-

@@ -1,5 +1,5 @@
 #### functions for BFI #####
- ## Lyne and Hollick ##
+## Lyne and Hollick ##
 LH_filter = function(Q, a){
   n <- length(Q)
   b <-Q
