@@ -44,8 +44,6 @@ if(vmoT){
   plot(resDF)
   
   
-  
-  
 } else {
   
   resDF= data.frame(ukih=ups,LH=ups2,CH =ups3,EK=ups4)
