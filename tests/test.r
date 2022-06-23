@@ -1,9 +1,11 @@
 # library(lowflow)
 library(data.table)
+library(fst)
 
+dtaC = as.data.table(read_fst(path="tests/data/dta.fst"))
 
-dtaC = readRDS("tests/data/QRdta151.rds")
 dta1b =dtaC[OLA=="UPS003000aqh",]
+
 a=0.95
 ups =baseflow_UKIH(dta1b[,R_mm_den])
 ups2=LH_filter(dta1b[,R_mm_den],a)
