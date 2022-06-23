@@ -20,10 +20,12 @@ Chapman_filter = function(Q, a){
   n <- length(Q)
   b <-Q
   b[1] <- Q[1]
+  f_i_1 <- 0
   for(i in 2:n){
     if(b[i-1] < Q[i]) {
-      f<- (3*a-1) / (3-a) * b[i-1] + (2) / (3-a) * (Q[i] - a*Q[i-1])
+      f<- (3*a-1) / (3-a) * f_i_1[i-1] + (2) / (3-a) * (Q[i] - a*Q[i-1])
       b[i] <- (a) * b[i-1] + 1 / 2 *(1-a) * (f + (Q[i-1]-b[i-1]))
+      f_i_1 = f
     } else if( b[i-1] > Q[i]){
       b[i] = Q[i]
     }
