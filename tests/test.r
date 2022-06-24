@@ -29,7 +29,8 @@ print(i)
  i=62
 dta1b =dtaC[ID==IDdta$ID[i],]
 ups =baseflow_UKIH(dta1b[,R_mm_den])
-ups2=LH_filter(dta1b[,R_mm_den],a)
+ups2=LH_filter_3p(dta1b[,R_mm_den],a)
+ups2a=LH_filter_1p(dta1b[,R_mm_den],a)
 ups3=Chapman_filter(dta1b[,R_mm_den],a)
 ups4=Chapman_MAxwell_filter(dta1b[,R_mm_den],a)
 tres = baseflow_RecessionConstant(dta1b[,R_mm_den])

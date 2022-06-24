@@ -1,6 +1,6 @@
 #### functions for BFI #####
-## Lyne and Hollick ##
-LH_filter = function(Q, a){
+## Lyne and Hollick 3passes##
+LH_filter_3p= function(Q, a){
   n <- length(Q)
   
   b1 <-vector("numeric", length = n)
@@ -16,6 +16,7 @@ LH_filter = function(Q, a){
   for(i in 2:n){
     f1[i] <- (a) * f1[i-1] + ((1+a) / (2)) * (Q[i]-Q[i-1])
   }
+  f1 <- ifelse(f1 < 0, 0,f1)
   f1 <- ifelse(f1 > Q, Q,f1)
   b1 <- ifelse(f1 > 0, Q-f1,Q )
   
@@ -27,7 +28,8 @@ LH_filter = function(Q, a){
   f1[n] <- b1[n]
   for(i in (n-1):2){
       f2[i] <- (a) * f2[i+1] + ((1+a) / (2)) * (b1[i]-b1[i+1])
-    }
+  }
+  f2 <- ifelse(f2 < 0, 0,f2)
   f2 <- ifelse(f2 > b1, b1,f2)
   b2 <- ifelse(f2 > 0, b1-f2,b1 )
   
@@ -37,11 +39,28 @@ LH_filter = function(Q, a){
   for(i in 2:n){
       f3[i] <- (a) * f2[i-1] + ((1+a) / (2)) * (b2[i]-b2[i-1])
   }
+  f3 <- ifelse(f3 < 0, 0,f3)
   f3 <- ifelse(f3 > b2, b2,f3)
   b3 <- ifelse(f3 >0, b2-f3,b2 )
 
   return(b3)
 } 
+# ekhardt lyne hock 1 pass
+LH_filter_1p= function(Q, a){
+  n <- length(Q)
+  
+  b1 <-vector("numeric", length = n)
+  
+  b1[1] <- Q[1]
+  for(i in 2:n){
+    b1[i] <- (a) * b1[i-1] + ((1-a) / (2)) * (Q[i]+Q[i-1])
+  }
+  b1 <- ifelse(b1 >Q, Q,b1 )
+
+  return(b1)
+} 
+
+
 
 ##Chapman Filter which is equal to same filter ith Echartds BFI_MAX = O.5#####
 # paper https://agupubs.onlinelibrary.wiley.com/doi/epdf/10.1029/91WR01007
