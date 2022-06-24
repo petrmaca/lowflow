@@ -2,16 +2,45 @@
 ## Lyne and Hollick ##
 LH_filter = function(Q, a){
   n <- length(Q)
-  b <-Q
-  b[1] <- Q[1]
+  
+  b1 <-vector("numeric", length = n)
+  b2 <-vector("numeric", length = n)
+  b3 <-vector("numeric", length = n)
+  
+  f1 <- vector("numeric", length = n)
+  f2 <- vector("numeric", length = n)
+  f3 <- vector("numeric", length = n)
+  
+  # the first pass
+  f1[1] <- Q[1]
   for(i in 2:n){
-    if(b[i-1] < Q[i]) {
-      b[i] <- (a) * b[i-1] + ((1-a) / (2)) * (Q[i]+Q[i-1])
-    } else {
-      b[i]<- Q[i]
-    }
+    f1[i] <- (a) * f1[i-1] + ((1+a) / (2)) * (Q[i]-Q[i-1])
   }
-  return(b)
+  f1 <- ifelse(f1 > Q, Q,f1)
+  b1 <- ifelse(f1 > 0, Q-f1,Q )
+  
+  
+  
+  # the second pass
+  # b2 <- b1
+  # f2 <- f1
+  f1[n] <- b1[n]
+  for(i in (n-1):2){
+      f2[i] <- (a) * f2[i+1] + ((1+a) / (2)) * (b1[i]-b1[i+1])
+    }
+  f2 <- ifelse(f2 > b1, b1,f2)
+  b2 <- ifelse(f2 > 0, b1-f2,b1 )
+  
+
+  # the third pass
+  f3 <- f2
+  for(i in 2:n){
+      f3[i] <- (a) * f2[i-1] + ((1+a) / (2)) * (b2[i]-b2[i-1])
+  }
+  f3 <- ifelse(f3 > b2, b2,f3)
+  b3 <- ifelse(f3 >0, b2-f3,b2 )
+
+  return(b3)
 } 
 
 ##Chapman Filter which is equal to same filter ith Echartds BFI_MAX = O.5#####

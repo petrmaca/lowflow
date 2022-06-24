@@ -26,7 +26,7 @@ a=0.925
 resDF =list()
 for( i in 1:nrow(IDdta)){
 print(i)
-  # i=62
+ i=62
 dta1b =dtaC[ID==IDdta$ID[i],]
 ups =baseflow_UKIH(dta1b[,R_mm_den])
 ups2=LH_filter(dta1b[,R_mm_den],a)
@@ -39,9 +39,9 @@ ups5=Eckhardt_filter(dta1b[,R_mm_den],a=a,BFI_max = bfim)
 ups6 =  baseflow_HYSEP(dta1b[,R_mm_den], area_KM2=IDdta[ID==IDdta$ID[i],area], method="fixed")
 ups7 =  baseflow_HYSEP(dta1b[,R_mm_den], area_KM2=IDdta[ID==IDdta$ID[i],area], method="sliding")
 ups8 =  baseflow_HYSEP(dta1b[,R_mm_den], area_KM2=IDdta[ID==IDdta$ID[i],area], method="local")
-# plot(dta1b[,R_mm_den], type="l")
-# lines(ups,col="red")
-# lines(ups2,col="blue")
+ plot(dta1b[,R_mm_den], type="l")
+ lines(ups,col="red")
+ lines(ups2,col="blue")
 # lines(ups3,col="green")
 # lines(ups4,col="purple")
 # lines(ups5,col="steelblue")
@@ -80,11 +80,17 @@ resDF <- rbindlist(resDF)
 cc =cor(resDF,use="pairwise.complete.obs")
 
 heatmap(cc,Rowv = NA, Colv = NA)
+
 # plot(resDF)
 # 
-# library(corrplot)
-# library(ggplot2)
-# library(tidyr)
+library(corrplot)
+library(ggplot2)
+library(tidyr)
+corrplot(cc, method = 'square', order = 'FPC', type = 'lower', diag = FALSE)
+corrplot(cc, method = 'square', diag = FALSE, order = 'hclust',
+         addrect = 3, rect.col = 'blue', rect.lwd = 3, tl.pos = 'd')
+
+
 # formatted_cors <- function(df){
 #   cors(df) %>%
 #     map(~rownames_to_column(.x, var="measure1")) %>%
