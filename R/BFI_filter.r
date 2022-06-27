@@ -226,3 +226,11 @@ baseflow_UKIH <- function(Q, endrule="NA"){
   bf[i_tooHigh] <- Q[i_tooHigh]
   return(bf)
 }
+
+obsBaseflow = function(Q,DTM){
+  
+  
+  
+  
+  
+}

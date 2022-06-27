@@ -1,4 +1,4 @@
-# library(lowflow)
+library(lowflow)
 library(data.table)
 library(fst)
 
@@ -45,7 +45,7 @@ ups8 =  baseflow_HYSEP(dta1b[,R_mm_den], area_KM2=IDdta[ID==IDdta$ID[i],area], m
  lines(ups2,col="blue")
  lines(ups2a,col="green")
  lines(ups3,col="red")
-# lines(ups4,col="purple")
+ lines(ups4,col="purple")
  lines(ups5,col="steelblue")
 # lines(ups6,col="pink")
 # lines(ups7,col="yellow")
