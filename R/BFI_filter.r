@@ -25,7 +25,7 @@ LH_filter_3p= function(Q, a){
   # the second pass
   # b2 <- b1
   # f2 <- f1
-  f1[n] <- b1[n]
+  f2[n] <- b1[n]
   for(i in (n-1):2){
       f2[i] <- (a) * f2[i+1] + ((1+a) / (2)) * (b1[i]-b1[i+1])
   }
@@ -35,9 +35,9 @@ LH_filter_3p= function(Q, a){
   
 
   # the third pass
-  f3 <- f2
+  f3 <- b2
   for(i in 2:n){
-      f3[i] <- (a) * f2[i-1] + ((1+a) / (2)) * (b2[i]-b2[i-1])
+      f3[i] <- (a) * f3[i-1] + ((1+a) / (2)) * (b2[i]-b2[i-1])
   }
   f3 <- ifelse(f3 < 0, 0,f3)
   f3 <- ifelse(f3 > b2, b2,f3)
