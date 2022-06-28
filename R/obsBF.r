@@ -13,6 +13,5 @@ finDT<-helpDTfin[,.(DTM = i.DTM.1,nextDTM = nextDTM, prevDTM = prevDTM,Rcur = R_
 finDT<-na.omit(finDT)
 finDT[,crit1 := ifelse(dRdt>=0,0,1)]
 
-
-dt=select.recessionlimbs(finDT$Rcur,as.character(finDT$DTM),3)
+dt=select.recessionlimbs(finDT$Rcur,as.character(finDT$DTM),minlength=9)
 
