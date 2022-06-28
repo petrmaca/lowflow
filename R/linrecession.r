@@ -1,4 +1,4 @@
-select.recessionlimbs = function(Q,DTM,minlength=3)
+select.recessionlimbs = function(Q,DTM,minlength=9, begOUt = 3, endOUt=5)
 {
 	reclimbframe = data.frame()
 	reclimbnum = 1
@@ -47,6 +47,15 @@ for(i in 2:N) {
 
 names(reclimbframe) = c("DTM","t","posinlimb","Q","reclimbnum")
 
-return(reclimbframe)
+nRL = max(reclimbframe$reclimbnum)
+
+reclimbframeCUTED =c()
+for( i in 1:nRL){
+  helpDF =   reclimbframe[reclimbframe$reclimbnum == i,]
+  reclimbframeCUTED = rbind(reclimbframeCUTED,helpDF[(begOUt+1):(nrow(helpDF)-endOUt),])
+  rm(helpDF)
+}
+
+return(reclimbframeCUTED)
 
 }

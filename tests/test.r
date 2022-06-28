@@ -26,7 +26,7 @@ a=0.925
 resDF =list()
 for( i in 1:nrow(IDdta)){
 print(i)
- i=62
+ # i=62
 dta1b =dtaC[ID==IDdta$ID[i],]
 ups =baseflow_UKIH(dta1b[,R_mm_den])
 ups2=LH_filter_3p(dta1b[,R_mm_den],a)
