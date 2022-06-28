@@ -28,7 +28,7 @@ for( i in 1:nrow(IDdta)){
   print(i)
 # dt=select.recessionlimbs(finDT$Rcur,as.character(finDT$DTM),minlength=9, begOUt = 3, endOUt=5)
   dta1b =dtaC[ID==IDdta$ID[i],]
-  dt=as.data.table(select.recessionlimbs(dta1b$R_mm_den,dta1b$DTM,minlength=9, begOUt = 3, endOUt=5))
+  dt=as.data.table(select.recessionlimbs(dta1b$R_mm_den,dta1b$DTM,minlength=9, begOUt = 3, endOUt=2))
   dt[,OLA := unique(dta1b$OLA)]
   dt[,DBCN := unique(dta1b$DBCN)]
   dt[,UPOV_ID := unique(dta1b$UPOV_ID)]
@@ -36,4 +36,4 @@ for( i in 1:nrow(IDdta)){
 }
 obsDF <- rbindlist(obsDF)
 
-write_fst(obsDF,path="tests/data/obsRL.fst")
+write_fst(obsDF,path="tests/data/obsRL_CenteredDIFFS_3begOUt_2endOut.fst")

@@ -11,13 +11,13 @@ select.recessionlimbs = function(Q,DTM,minlength=9, begOUt = 3, endOUt=5)
 	posinlimbcounter = 1
 
 	N = length(Q)
-for(i in 2:N) {
+for(i in 2:(N-1)) {
 
-	if(Q[i]<Q[i-1]) {
+	if(Q[i+1]<Q[i-1]) {
 	
-	Qpart = c(Qpart,Q[i-1])
-	tpart = c(tpart,i-1)
-	dtm = c(dtm,as.character(DTM[i-1]))
+	Qpart = c(Qpart,Q[i])
+	tpart = c(tpart,i)
+	dtm = c(dtm,as.character(DTM[i]))
 
 	posinlimbpart = c(posinlimbpart,posinlimbcounter)
 	posinlimbcounter = posinlimbcounter+1
