@@ -36,4 +36,4 @@ for( i in 1:nrow(IDdta)){
 }
 obsDF <- rbindlist(obsDF)
 
-save
+write_fst(obsDF,path="tests/data/obsRL.fst")
