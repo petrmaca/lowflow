@@ -1,8 +1,9 @@
-select.recessionlimbs = function(Q,minlength=3)
+select.recessionlimbs = function(Q,DTM,minlength=3)
 {
 	reclimbframe = data.frame()
 	reclimbnum = 1
 
+	dtm = c()
 	tpart = c()
 	Qpart = c()
 	posinlimbpart = c()
@@ -16,6 +17,7 @@ for(i in 2:N) {
 	
 	Qpart = c(Qpart,Q[i-1])
 	tpart = c(tpart,i-1)
+	dtm = c(dtm,as.character(DTM[i-1]))
 
 	posinlimbpart = c(posinlimbpart,posinlimbcounter)
 	posinlimbcounter = posinlimbcounter+1
@@ -27,7 +29,7 @@ for(i in 2:N) {
 	for(j in 1:length(Qpart)) {
 		
 		reclimbframe = rbind(reclimbframe,
-		c(tpart[j],posinlimbpart[j],Qpart[j],reclimbnum))
+		c(dtm[j],tpart[j],posinlimbpart[j],Qpart[j],reclimbnum))
 		}
 
 	reclimbnum = reclimbnum+1
@@ -36,13 +38,14 @@ for(i in 2:N) {
 	Qpart = c()
 	tpart = c()
 	posinlimbpart = c()
+	dtm=c()
 
 
 	posinlimbcounter = 1
 	}
 }
 
-names(reclimbframe) = c("t","posinlimb","Q","reclimbnum")
+names(reclimbframe) = c("DTM","t","posinlimb","Q","reclimbnum")
 
 return(reclimbframe)
 
