@@ -33,7 +33,7 @@ for( i in 1:nrow(IDdta)){
   dta1b =dtaC[ID==IDdta$ID[i],]
   # dt=as.data.table(select.recessionlimbs(dta1b$R_mm_den,dta1b$DTM,minlength=9, begOUt = 5, endOUt=3))
   # dt=as.data.table(select.recessionlimbs_Xie(dta1b$R_mm_den,dta1b$DTM,minlength=9, endOUt=2))
-  dt=select.recessionlimbs_Xie(dta1b$R_mm_den,dta1b$DTM,minlength=9, endOUt=2)
+  dt=select.recessionlimbs_Xie(dta1b$R_mm_den,dta1b$DTM,minlength=7, endOUt=2)
   # plot(dt$DTM,dt$R)
   dt=data.table(dt)
   dt[,OLA := unique(dta1b$OLA)]
