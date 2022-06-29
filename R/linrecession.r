@@ -23,7 +23,7 @@ for(i in 2:(N-1)) {
 	posinlimbcounter = posinlimbcounter+1
 } else {
 	
-	if(length(Qpart)>minlength) {
+	if(length(Qpart)>=minlength) {
 
 
 	for(j in 1:length(Qpart)) {
@@ -87,7 +87,7 @@ select.recessionlimbs_Xie = function(Q,DTM,minlength=9, endOUt=5)
       posinlimbcounter = posinlimbcounter+1
     } else {
       
-      if(length(Qpart)>minlength) {
+      if(length(Qpart)>=minlength) {
         
         
         for(j in 1:length(Qpart)) {
