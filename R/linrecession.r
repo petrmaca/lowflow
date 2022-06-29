@@ -17,7 +17,6 @@ for(i in 2:(N-1)) {
 	
 	Qpart = c(Qpart,Q[i])
 	tpart = c(tpart,i)
-	dtm = c(dtm,as.character(DTM[i]))
 
 	posinlimbpart = c(posinlimbpart,posinlimbcounter)
 	posinlimbcounter = posinlimbcounter+1
@@ -29,7 +28,7 @@ for(i in 2:(N-1)) {
 	for(j in 1:length(Qpart)) {
 		
 		reclimbframe = rbind(reclimbframe,
-		c(dtm[j],tpart[j],posinlimbpart[j],Qpart[j],reclimbnum))
+		c(tpart[j],posinlimbpart[j],Qpart[j],reclimbnum))
 		}
 
 	reclimbnum = reclimbnum+1
@@ -38,14 +37,15 @@ for(i in 2:(N-1)) {
 	Qpart = c()
 	tpart = c()
 	posinlimbpart = c()
-	dtm=c()
-
 
 	posinlimbcounter = 1
 	}
 }
 
-names(reclimbframe) = c("DTM","t","posinlimb","R","reclimbnum")
+names(reclimbframe) = c("t","posinlimb","R","reclimbnum")
+reclimbframe = cbind(reclimbframe, as.Date(DTM[reclimbframe$t]))
+
+names(reclimbframe) = c("t","posinlimb","R","reclimbnum","DTM")
 
 nRL = max(reclimbframe$reclimbnum)
 
@@ -61,8 +61,11 @@ return(reclimbframeCUTED)
 }
 
 
-select.recessionlimbs_Xie = function(Q,DTM,minlength=9, endOUt=5)
+select.recessionlimbs_Xie = function(Q,DTM,minlength=9, endOUt=2)
 {
+  
+   # Q = dta1b$R
+   # DTM= dta1b$DTM
   reclimbframe = data.frame()
   reclimbnum = 1
   
@@ -81,7 +84,7 @@ select.recessionlimbs_Xie = function(Q,DTM,minlength=9, endOUt=5)
       
       Qpart = c(Qpart,Q[i])
       tpart = c(tpart,i)
-      dtm = c(dtm,as.character(DTM[i]))
+      # dtm = c(dtm,as.character(DTM[i]))
       
       posinlimbpart = c(posinlimbpart,posinlimbcounter)
       posinlimbcounter = posinlimbcounter+1
@@ -109,7 +112,13 @@ select.recessionlimbs_Xie = function(Q,DTM,minlength=9, endOUt=5)
     }
   }
   
-  names(reclimbframe) = c("DTM","t","posinlimb","R","reclimbnum")
+  names(reclimbframe) = c("t","posinlimb","R","reclimbnum")
+  
+  reclimbframe = cbind(reclimbframe, as.Date(DTM[reclimbframe$t]))
+  
+  names(reclimbframe) = c("t","posinlimb","R","reclimbnum","DTM")
+  
+  # reclimbframe = cbind(reclimbframe, as.character(dtm))
   
   nRL = max(reclimbframe$reclimbnum)
   
@@ -121,6 +130,7 @@ select.recessionlimbs_Xie = function(Q,DTM,minlength=9, endOUt=5)
     reclimbframeCUTED = rbind(reclimbframeCUTED,helpDF[(helpbegOUt+1):(nrow(helpDF)-endOUt),])
     rm(helpDF)
   }
+  
   
   return(reclimbframeCUTED)
   
