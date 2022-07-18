@@ -54,9 +54,9 @@ LH_filter_1p= function(Q, a){
   b1[1] <- Q[1]
   for(i in 2:n){
     b1[i] <- (a) * b1[i-1] + ((1-a) / (2)) * (Q[i]+Q[i-1])
+    ifelse(b1[i] >Q[i], Q[i],b1[i] )
   }
-  b1 <- ifelse(b1 >Q, Q,b1 )
-
+  
   return(b1)
 } 
 
@@ -70,14 +70,16 @@ Chapman_filter = function(Q, a){
   b[1] <- Q[1]
   f_i_1 <- 0
   for(i in 2:n){
-    if(b[i-1] < Q[i]) {
-      f<- (3*a-1) / (3-a) * f_i_1 + (2) / (3-a) * (Q[i] - a*Q[i-1])
-      b[i] <- (a) * b[i-1] + 1 / 2 *(1-a) * (f + (Q[i-1]-b[i-1]))
-      f_i_1 = f
-    } else if( b[i-1] > Q[i]){
-      b[i] = Q[i]
+      f <- (3*a-1) / (3-a) * f_i_1 + (2) / (3-a) * (Q[i] - a*Q[i-1])
+    if (f < 0) { 
+      f=0 
+      b[i] <- Q[i]
+    } else {
+      b[i] <- Q[i] - f
     }
+      f_i_1 <- f
   }
+
   return(b)
 }
 
@@ -88,9 +90,8 @@ Chapman_MAxwell_filter = function(Q, a){
   b <-Q
   b[1] <- Q[1]
   for(i in 2:n){
-    if(b[i-1] < Q[i]) {
       b[i] <- (a) / (2-a) * b[i-1] + (1-a) / (2-a) * (Q[i])
-    } else if( b[i-1] > Q[i]){
+    if( b[i] > Q[i]){
       b[i] = Q[i]
     }
   }
@@ -104,9 +105,8 @@ Eckhardt_filter = function(Q, a, BFI_max){
   b <- vector("numeric", length = n)
   b[1] <- Q[1]
   for(i in 2:n){
-    if(b[i-1] < Q[i]) {
-      b[i] <- ((1-BFI_max)*a*b[i-1] + (1-a)*BFI_max*Q[i])/(1-a*BFI_max)
-    } else {
+    b[i] <- ((1-BFI_max)*a*b[i-1] + (1-a)*BFI_max*Q[i])/(1-a*BFI_max)
+    if(b[i] > Q[i]) {
       b[i]<- Q[i]
     }
   }
