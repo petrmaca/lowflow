@@ -54,7 +54,7 @@ LH_filter_1p= function(Q, a){
   b1[1] <- Q[1]
   for(i in 2:n){
     b1[i] <- (a) * b1[i-1] + ((1-a) / (2)) * (Q[i]+Q[i-1])
-    ifelse(b1[i] >Q[i], Q[i],b1[i] )
+    b1[i] <- ifelse(b1[i] >Q[i], Q[i],b1[i] )
   }
   
   return(b1)
