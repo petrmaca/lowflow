@@ -5,7 +5,7 @@ require(data.table)
 require(fst)
 require(hydroGOF)
 
-EK_bezPODM = function(Q, a, BFImax){
+EK_PODM_cit = function(Q, a, BFImax){
   n = length(Q)
   b = matrix(nrow = n, ncol = 2)
   b[, 2] = 0
@@ -19,6 +19,17 @@ EK_bezPODM = function(Q, a, BFImax){
     }
   return(b)
   }
+
+EK_bezPodm = function(Q, a, BFImax){
+  n = length(Q)
+  b = vector("numeric", length = n)
+  b[1] = Q[1]
+  for(i in 2 : n){
+    b[i] = ((1 - BFImax) * a * b[i - 1] + (1 - a) * BFImax * Q[i]) / (1 - a * BFImax)
+    }
+  return(b)
+  }
+
 
 Q_R = as.data.table(read_fst(path="tests/data/dta.fst"))
 RECLIMBS_obs = as.data.table(read_fst(path="tests/data/obsRL_CenteredDIFFS_3OR5begOUt_2endOut_9length_Xie.fst"))
@@ -51,8 +62,8 @@ for(a in 1 : 100){
     
     BF_BRUT = Eckhardt_filter(Q = SEL_POV[, R_mm_den], a = VEC_BRUT_ALFA[b], BFI_max = VEC_BRUT_BFIm[b])
     BF_LANG = Eckhardt_filter(Q = SEL_POV[, R_mm_den], a = VEC_LANG_ALFA[b], BFI_max = VEC_LANG_BFIm[b])
-    BF_PODM_BRUT = EK_bezPODM(Q = SEL_POV[, R_mm_den], a = VEC_BRUT_ALFA[b], BFImax = VEC_BRUT_BFIm[b])
-    BF_PODM_LANG = EK_bezPODM(Q = SEL_POV[, R_mm_den], a = VEC_LANG_ALFA[b], BFImax = VEC_LANG_BFIm[b])
+    BF_PODM_BRUT = EK_PODM_cit(Q = SEL_POV[, R_mm_den], a = VEC_BRUT_ALFA[b], BFImax = VEC_BRUT_BFIm[b])
+    BF_PODM_LANG = EK_PODM_cit(Q = SEL_POV[, R_mm_den], a = VEC_LANG_ALFA[b], BFImax = VEC_LANG_BFIm[b])
     BF_COMP = data.frame(matrix(nrow = nrow(SEL_POV), ncol = 8))
     names(BF_COMP) = c('OLA', 'DTM', 'BF_BRUT', 'BF_LANG', 'BF_BRUT_podm', 'BF_LANG_podm', 'DIF_Brut', 'DIF_Lang')
     BF_COMP[, 'OLA'] = SEL_POV[, OLA]
@@ -82,6 +93,17 @@ PROCENTA = readRDS('Proc_CR_BFImax_BRUT_LANG.rds')
 MED_KGE_PRUM_ALFA_BFIm = data.frame(matrix(nrow = 100, ncol = 9))
 names(MED_KGE_PRUM_ALFA_BFIm) = c('PROC', 'medKGE_Brut', 'medKGE_Lang', 'prumALFA_Brut', 'prumBFIm_Brut', 'proc_Brut', 'prumALFA_Lang', 'prumBFIm_Lang', 'proc_Lang')
 
+b = 1
+PROCT = 0.6
+SEL_POV = Q_R[OLA == IDS[b]]
+SEL_POV = SEL_POV[,.(OLA, DTM, R_mm_den)]
+BF_nPOD = EK_bezPodm(Q = SEL_POV[, R_mm_den], a = PROCENTA[OLA == IDS[b] & PROC == PROCT, RC_Brut], BFImax = PROCENTA[OLA == IDS[b] & PROC == PROCT, BFI_max_Brut])
+BF_POD = Eckhardt_filter(Q = SEL_POV[, R_mm_den], a = PROCENTA[OLA == IDS[b] & PROC == PROCT, RC_Brut], BFI_max = PROCENTA[OLA == IDS[b] & PROC == PROCT, BFI_max_Brut])
+rng = 1 : 200
+plot(SEL_POV[rng, R_mm_den], type = 'l', col = 'red')
+lines(BF_nPOD[rng], col = 'blue')
+lines(BF_POD[rng], col = 'green')
+
 for(a in 1 : 100){
   MED_KGE_PRUM_ALFA_BFIm[a, 'PROC'] = a / 100
   MED_KGE_PRUM_ALFA_BFIm[a, 'medKGE_Brut'] = median(INP_DTA[PROC == (a / 100), KGE_Brut])
@@ -93,7 +115,6 @@ for(a in 1 : 100){
   MED_KGE_PRUM_ALFA_BFIm[a, 'prumBFIm_Lang'] = mean(PROCENTA[PROC == (a / 100), BFI_max_Lang])
   MED_KGE_PRUM_ALFA_BFIm[a, 'proc_Lang'] = mean(INP_DTA[PROC == (a / 100), Proc_podm_Lang])
   }
-
 
 VEC_BRUT_ALFA = PROCENTA[PROC == 0.53, RC_Brut]
 VEC_LANG_ALFA = PROCENTA[PROC == 0.57, RC_Lang]
