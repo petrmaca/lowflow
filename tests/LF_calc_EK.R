@@ -97,6 +97,7 @@ for(a in 1 : length(IDS)){
   BF_COMP[, 'BF_BRUT_VAR'] = BF_BRUT_VAR
   BF_COMP[, 'BF_LANG_VAR'] = BF_LANG_VAR
   BF_COMP = merge(BF_COMP, SEL_RECLIMB_ALL, by = 'DTM')
+  RES_KGE[a, 'OLA'] = IDS[a]
   RES_KGE[a, 'KGE_konst'] = KGE(obs = BF_COMP[, 'R'], sim = BF_COMP[, 'BF_KONST'], na.rm = TRUE)
   RES_KGE[a, 'KGE_Brut'] = KGE(obs = BF_COMP[, 'R'], sim = BF_COMP[, 'BF_BRUT_VAR'], na.rm = TRUE)
   RES_KGE[a, 'KGE_Lang'] = KGE(obs = BF_COMP[, 'R'], sim = BF_COMP[, 'BF_LANG_VAR'], na.rm = TRUE)
