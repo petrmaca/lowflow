@@ -5,6 +5,21 @@ require(data.table)
 require(fst)
 require(hydroGOF)
 
+EK_bezPODM = function(Q, a, BFImax){
+  n = length(Q)
+  b = matrix(nrow = n, ncol = 2)
+  b[, 2] = 0
+  b[1, 1] = Q[1]
+  for(i in 2 : n){
+    b[i, 1] = ((1 - BFImax) * a * b[i - 1, 1] + (1 - a) * BFImax * Q[i]) / (1 - a * BFImax)
+    if(b[i, 1] > Q[i]){
+      b[i, 2] = 1
+      b[i, 1] = Q[i]
+      }
+    }
+  return(b)
+  }
+
 Q_R = as.data.table(read_fst(path="tests/data/dta.fst"))
 RECLIMBS_obs = as.data.table(read_fst(path="tests/data/obsRL_CenteredDIFFS_3OR5begOUt_2endOut_9length_Xie.fst"))
 
@@ -23,8 +38,8 @@ for(a in 1 : 100){
   VEC_BRUT_BFIm = PROCENTA[PROC == (a / 100), BFI_max_Brut]
   VEC_LANG_BFIm = PROCENTA[PROC == (a / 100), BFI_max_Lang]
   
-  RES_PART = data.frame(matrix(nrow = length(IDS), ncol = 4))
-  names(RES_PART) = c('OLA', 'PROC', 'KGE_Brut', 'KGE_Lang')
+  RES_PART = data.frame(matrix(nrow = length(IDS), ncol = 6))
+  names(RES_PART) = c('OLA', 'PROC', 'KGE_Brut', 'KGE_Lang', 'Proc_podm_Brut', 'Proc_podm_Lang')
   RES_PART[, 'PROC'] = (a / 100)
   
   for(b in 1 : length(IDS)){
@@ -36,15 +51,23 @@ for(a in 1 : 100){
     
     BF_BRUT = Eckhardt_filter(Q = SEL_POV[, R_mm_den], a = VEC_BRUT_ALFA[b], BFI_max = VEC_BRUT_BFIm[b])
     BF_LANG = Eckhardt_filter(Q = SEL_POV[, R_mm_den], a = VEC_LANG_ALFA[b], BFI_max = VEC_LANG_BFIm[b])
-    BF_COMP = data.frame(matrix(nrow = nrow(SEL_POV), ncol = 4))
-    names(BF_COMP) = c('OLA', 'DTM', 'BF_BRUT', 'BF_LANG')
+    BF_PODM_BRUT = EK_bezPODM(Q = SEL_POV[, R_mm_den], a = VEC_BRUT_ALFA[b], BFImax = VEC_BRUT_BFIm[b])
+    BF_PODM_LANG = EK_bezPODM(Q = SEL_POV[, R_mm_den], a = VEC_LANG_ALFA[b], BFImax = VEC_LANG_BFIm[b])
+    BF_COMP = data.frame(matrix(nrow = nrow(SEL_POV), ncol = 8))
+    names(BF_COMP) = c('OLA', 'DTM', 'BF_BRUT', 'BF_LANG', 'BF_BRUT_podm', 'BF_LANG_podm', 'DIF_Brut', 'DIF_Lang')
     BF_COMP[, 'OLA'] = SEL_POV[, OLA]
     BF_COMP[, 'DTM'] = SEL_POV[, DTM]
     BF_COMP[, 'BF_BRUT'] = BF_BRUT
     BF_COMP[, 'BF_LANG'] = BF_LANG
+    BF_COMP[, 'BF_BRUT_podm'] = BF_PODM_BRUT
+    BF_COMP[, 'BF_LANG_podm'] = BF_PODM_LANG
+    BF_COMP[, 'DIF_Brut'] = SEL_POV[, R_mm_den] - BF_COMP[, 'BF_BRUT_podm']
+    BF_COMP[, 'DIF_Lang'] = SEL_POV[, R_mm_den] - BF_COMP[, 'BF_LANG_podm']
     BF_COMP = merge(BF_COMP, SEL_RECLIMB_ALL, by = 'DTM')
     RES_PART[b, 'KGE_Brut'] = KGE(obs = BF_COMP[, 'R'], sim = BF_COMP[, 'BF_BRUT'], na.rm = TRUE)
     RES_PART[b, 'KGE_Lang'] = KGE(obs = BF_COMP[, 'R'], sim = BF_COMP[, 'BF_LANG'], na.rm = TRUE)
+    RES_PART[b, 'Proc_podm_Brut'] = 100 * length(which(BF_COMP[, 'DIF_Brut'] < 0)) / nrow(BF_COMP)
+    RES_PART[b, 'Proc_podm_Lang'] = 100 * length(which(BF_COMP[, 'DIF_Lang'] < 0)) / nrow(BF_COMP)
     }
   RES_ALL[[a]] = RES_PART
   }
@@ -56,8 +79,8 @@ saveRDS(RES_ALL, 'KGE_EK_Brut_Lang.rds')
 setwd('C:/Users/hermanovsky/Documents/dev/lowflow/tests/data/RES')
 INP_DTA = readRDS('KGE_EK_Brut_Lang.rds')
 PROCENTA = readRDS('Proc_CR_BFImax_BRUT_LANG.rds')
-MED_KGE_PRUM_ALFA_BFIm = data.frame(matrix(nrow = 100, ncol = 7))
-names(MED_KGE_PRUM_ALFA_BFIm) = c('PROC', 'medKGE_Brut', 'medKGE_Lang', 'prumALFA_Brut', 'prumBFIm_Brut', 'prumALFA_Lang', 'prumBFIm_Lang')
+MED_KGE_PRUM_ALFA_BFIm = data.frame(matrix(nrow = 100, ncol = 9))
+names(MED_KGE_PRUM_ALFA_BFIm) = c('PROC', 'medKGE_Brut', 'medKGE_Lang', 'prumALFA_Brut', 'prumBFIm_Brut', 'proc_Brut', 'prumALFA_Lang', 'prumBFIm_Lang', 'proc_Lang')
 
 for(a in 1 : 100){
   MED_KGE_PRUM_ALFA_BFIm[a, 'PROC'] = a / 100
@@ -65,8 +88,10 @@ for(a in 1 : 100){
   MED_KGE_PRUM_ALFA_BFIm[a, 'medKGE_Lang'] = median(INP_DTA[PROC == (a / 100), KGE_Lang])
   MED_KGE_PRUM_ALFA_BFIm[a, 'prumALFA_Brut'] = mean(PROCENTA[PROC == (a / 100), RC_Brut])
   MED_KGE_PRUM_ALFA_BFIm[a, 'prumBFIm_Brut'] = mean(PROCENTA[PROC == (a / 100), BFI_max_Brut])
+  MED_KGE_PRUM_ALFA_BFIm[a, 'proc_Brut'] = mean(INP_DTA[PROC == (a / 100), Proc_podm_Brut])
   MED_KGE_PRUM_ALFA_BFIm[a, 'prumALFA_Lang'] = mean(PROCENTA[PROC == (a / 100), RC_Lang])
   MED_KGE_PRUM_ALFA_BFIm[a, 'prumBFIm_Lang'] = mean(PROCENTA[PROC == (a / 100), BFI_max_Lang])
+  MED_KGE_PRUM_ALFA_BFIm[a, 'proc_Lang'] = mean(INP_DTA[PROC == (a / 100), Proc_podm_Lang])
   }
 
 
