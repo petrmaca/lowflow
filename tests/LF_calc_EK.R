@@ -1,0 +1,118 @@
+rm(list = ls())
+
+require(lowflow)
+require(data.table)
+require(fst)
+require(hydroGOF)
+
+Q_R = as.data.table(read_fst(path="tests/data/dta.fst"))
+RECLIMBS_obs = as.data.table(read_fst(path="tests/data/obsRL_CenteredDIFFS_3OR5begOUt_2endOut_9length_Xie.fst"))
+
+IDS = unique(Q_R[, OLA])
+IDS = IDS[-62]
+
+setwd('C:/Users/hermanovsky/Documents/dev/lowflow/tests/data/RES')
+PROCENTA = readRDS('Proc_CR_BFImax_BRUT_LANG.rds')
+
+RES_ALL = list()
+
+for(a in 1 : 100){
+  print(a)
+  VEC_BRUT_ALFA = PROCENTA[PROC == (a / 100), RC_Brut]
+  VEC_LANG_ALFA = PROCENTA[PROC == (a / 100), RC_Lang]
+  VEC_BRUT_BFIm = PROCENTA[PROC == (a / 100), BFI_max_Brut]
+  VEC_LANG_BFIm = PROCENTA[PROC == (a / 100), BFI_max_Lang]
+  
+  RES_PART = data.frame(matrix(nrow = length(IDS), ncol = 4))
+  names(RES_PART) = c('OLA', 'PROC', 'KGE_Brut', 'KGE_Lang')
+  RES_PART[, 'PROC'] = (a / 100)
+  
+  for(b in 1 : length(IDS)){
+    RES_PART[b, 'OLA'] = IDS[b]
+    SEL_POV = Q_R[OLA == IDS[b]]
+    SEL_POV = SEL_POV[,.(OLA, DTM, R_mm_den)]
+    SEL_RECLIMB_ALL = RECLIMBS_obs[OLA == IDS[b]]
+    SEL_RECLIMB_ALL = SEL_RECLIMB_ALL[,.(DTM, t, posinlimb, reclimbnum, R)]
+    
+    BF_BRUT = Eckhardt_filter(Q = SEL_POV[, R_mm_den], a = VEC_BRUT_ALFA[b], BFI_max = VEC_BRUT_BFIm[b])
+    BF_LANG = Eckhardt_filter(Q = SEL_POV[, R_mm_den], a = VEC_LANG_ALFA[b], BFI_max = VEC_LANG_BFIm[b])
+    BF_COMP = data.frame(matrix(nrow = nrow(SEL_POV), ncol = 4))
+    names(BF_COMP) = c('OLA', 'DTM', 'BF_BRUT', 'BF_LANG')
+    BF_COMP[, 'OLA'] = SEL_POV[, OLA]
+    BF_COMP[, 'DTM'] = SEL_POV[, DTM]
+    BF_COMP[, 'BF_BRUT'] = BF_BRUT
+    BF_COMP[, 'BF_LANG'] = BF_LANG
+    BF_COMP = merge(BF_COMP, SEL_RECLIMB_ALL, by = 'DTM')
+    RES_PART[b, 'KGE_Brut'] = KGE(obs = BF_COMP[, 'R'], sim = BF_COMP[, 'BF_BRUT'], na.rm = TRUE)
+    RES_PART[b, 'KGE_Lang'] = KGE(obs = BF_COMP[, 'R'], sim = BF_COMP[, 'BF_LANG'], na.rm = TRUE)
+    }
+  RES_ALL[[a]] = RES_PART
+  }
+RES_ALL = rbindlist(RES_ALL)
+
+setwd('C:/Users/hermanovsky/Documents/dev/lowflow/tests/data/RES')
+saveRDS(RES_ALL, 'KGE_EK_Brut_Lang.rds')
+
+setwd('C:/Users/hermanovsky/Documents/dev/lowflow/tests/data/RES')
+INP_DTA = readRDS('KGE_EK_Brut_Lang.rds')
+PROCENTA = readRDS('Proc_CR_BFImax_BRUT_LANG.rds')
+MED_KGE_PRUM_ALFA_BFIm = data.frame(matrix(nrow = 100, ncol = 7))
+names(MED_KGE_PRUM_ALFA_BFIm) = c('PROC', 'medKGE_Brut', 'medKGE_Lang', 'prumALFA_Brut', 'prumBFIm_Brut', 'prumALFA_Lang', 'prumBFIm_Lang')
+
+for(a in 1 : 100){
+  MED_KGE_PRUM_ALFA_BFIm[a, 'PROC'] = a / 100
+  MED_KGE_PRUM_ALFA_BFIm[a, 'medKGE_Brut'] = median(INP_DTA[PROC == (a / 100), KGE_Brut])
+  MED_KGE_PRUM_ALFA_BFIm[a, 'medKGE_Lang'] = median(INP_DTA[PROC == (a / 100), KGE_Lang])
+  MED_KGE_PRUM_ALFA_BFIm[a, 'prumALFA_Brut'] = mean(PROCENTA[PROC == (a / 100), RC_Brut])
+  MED_KGE_PRUM_ALFA_BFIm[a, 'prumBFIm_Brut'] = mean(PROCENTA[PROC == (a / 100), BFI_max_Brut])
+  MED_KGE_PRUM_ALFA_BFIm[a, 'prumALFA_Lang'] = mean(PROCENTA[PROC == (a / 100), RC_Lang])
+  MED_KGE_PRUM_ALFA_BFIm[a, 'prumBFIm_Lang'] = mean(PROCENTA[PROC == (a / 100), BFI_max_Lang])
+  }
+
+
+VEC_BRUT_ALFA = PROCENTA[PROC == 0.53, RC_Brut]
+VEC_LANG_ALFA = PROCENTA[PROC == 0.57, RC_Lang]
+VEC_BRUT_BFIm = PROCENTA[PROC == 0.53, BFI_max_Brut]
+VEC_LANG_BFIm = PROCENTA[PROC == 0.57, BFI_max_Lang]
+
+RES_KGE = data.frame(matrix(nrow = length(IDS), ncol = 4))
+names(RES_KGE) = c('OLA', 'KGE_konst', 'KGE_Brut', 'KGE_Lang')
+
+for(a in 1 : length(IDS)){
+  
+  SEL_POV = Q_R[OLA == IDS[a]]
+  SEL_POV = SEL_POV[,.(OLA, DTM, R_mm_den)]
+  SEL_RECLIMB_ALL = RECLIMBS_obs[OLA == IDS[a]]
+  SEL_RECLIMB_ALL = SEL_RECLIMB_ALL[,.(DTM, t, posinlimb, reclimbnum, R)]
+  
+  BF_KONST = Eckhardt_filter(Q = SEL_POV[, R_mm_den], a = 0.925, BFI_max = 0.8)
+  BF_BRUT_VAR = Eckhardt_filter(Q = SEL_POV[, R_mm_den], a = VEC_BRUT_ALFA[a], BFI_max = VEC_BRUT_BFIm[a])
+  BF_LANG_VAR = Eckhardt_filter(Q = SEL_POV[, R_mm_den], a = VEC_LANG_ALFA[a], BFI_max = VEC_LANG_BFIm[a])
+  
+  BF_COMP = data.frame(matrix(nrow = nrow(SEL_POV), ncol = 5))
+  names(BF_COMP) = c('OLA', 'DTM', 'BF_KONST', 'BF_BRUT_VAR', 'BF_LANG_VAR')
+  BF_COMP[, 'OLA'] = SEL_POV[, OLA]
+  BF_COMP[, 'DTM'] = SEL_POV[, DTM]
+  BF_COMP[, 'BF_KONST'] = BF_KONST
+  BF_COMP[, 'BF_BRUT_VAR'] = BF_BRUT_VAR
+  BF_COMP[, 'BF_LANG_VAR'] = BF_LANG_VAR
+  BF_COMP = merge(BF_COMP, SEL_RECLIMB_ALL, by = 'DTM')
+  RES_KGE[a, 'KGE_konst'] = KGE(obs = BF_COMP[, 'R'], sim = BF_COMP[, 'BF_KONST'], na.rm = TRUE)
+  RES_KGE[a, 'KGE_Brut'] = KGE(obs = BF_COMP[, 'R'], sim = BF_COMP[, 'BF_BRUT_VAR'], na.rm = TRUE)
+  RES_KGE[a, 'KGE_Lang'] = KGE(obs = BF_COMP[, 'R'], sim = BF_COMP[, 'BF_LANG_VAR'], na.rm = TRUE)
+  }
+
+
+
+boxplot(RES_KGE[, (2:4)], outline = FALSE)
+
+plot(MED_KGE_PRUM_ALFA_BFIm[, 'medKGE_Brut'] ~ MED_KGE_PRUM_ALFA_BFIm[, 'PROC'], type = 'l', xlab = 'proc.', ylab = 'KGE', col = 'blue')
+lines(MED_KGE_PRUM_ALFA_BFIm[, 'medKGE_Lang'] ~ MED_KGE_PRUM_ALFA_BFIm[, 'PROC'], col = 'red')
+
+plot(MED_KGE_PRUM_ALFA_BFIm[, 'prumALFA_Brut'] ~ MED_KGE_PRUM_ALFA_BFIm[, 'PROC'],  type = 'l', xlab = 'proc.', ylab = 'alfa', col = 'red', ylim = c(0.5, 1))
+lines(MED_KGE_PRUM_ALFA_BFIm[, 'prumALFA_Lang'] ~ MED_KGE_PRUM_ALFA_BFIm[, 'PROC'], col = 'blue')
+
+plot(MED_KGE_PRUM_ALFA_BFIm[, 'prumBFIm_Brut'] ~ MED_KGE_PRUM_ALFA_BFIm[, 'PROC'],  type = 'l', xlab = 'proc.', ylab = 'alfa', col = 'red', ylim = c(0, 1))
+lines(MED_KGE_PRUM_ALFA_BFIm[, 'prumBFIm_Lang'] ~ MED_KGE_PRUM_ALFA_BFIm[, 'PROC'], col = 'blue')
+
+
