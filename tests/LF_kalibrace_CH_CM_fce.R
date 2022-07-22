@@ -132,3 +132,92 @@ PRUMERY[, 'DIF_CH_BR'] = abs(PRUMERY[, 'PRUM_ALFA_BRUT'] - ALFA_PRUM_CH)
 PRUMERY[, 'DIF_CH_LN'] = abs(PRUMERY[, 'PRUM_ALFA_LANG'] - ALFA_PRUM_CH)
 PRUMERY[, 'DIF_CM_BR'] = abs(PRUMERY[, 'PRUM_ALFA_BRUT'] - ALFA_PRUM_CM)
 PRUMERY[, 'DIF_CM_LN'] = abs(PRUMERY[, 'PRUM_ALFA_LANG'] - ALFA_PRUM_CM)
+
+PROC_BRUT_CH = PRUMERY[which(PRUMERY[, 'DIF_CH_BR'] == min(PRUMERY[, 'DIF_CH_BR'])), 'PROC']
+PROC_LANG_CH = PRUMERY[which(PRUMERY[, 'DIF_CH_LN'] == min(PRUMERY[, 'DIF_CH_LN'])), 'PROC']
+PROC_BRUT_CM = PRUMERY[which(PRUMERY[, 'DIF_CM_BR'] == min(PRUMERY[, 'DIF_CM_BR'])), 'PROC']
+PROC_LANG_CM = PRUMERY[which(PRUMERY[, 'DIF_CM_LN'] == min(PRUMERY[, 'DIF_CM_LN'])), 'PROC']
+
+VEC_K_BRUT_CH = PROCENTA[PROC == PROC_BRUT_CH, RC_Brut]
+VEC_K_LANG_CH = PROCENTA[PROC == PROC_LANG_CH, RC_Brut]
+VEC_K_BRUT_CM = PROCENTA[PROC == PROC_BRUT_CM, RC_Brut]
+VEC_K_LANG_CM = PROCENTA[PROC == PROC_LANG_CM, RC_Brut]
+
+#vypocet lowflow a KGE
+RES_KGE = data.frame(matrix(nrow = length(IDS), ncol = 7))
+names(RES_KGE) = c('OLA', 'KGE_0925_CH', 'KGE_BRUT_CH', 'KGE_LANG_CH', 'KGE_0925_CM', 'KGE_BRUT_CM', 'KGE_LANG_CM')
+
+for(a in 1 : length(IDS)){
+  print(a)
+  RES_KGE[a, 'OLA'] = IDS[a]
+  SEL_POV = Q_R[OLA == IDS[a]]
+  SEL_POV = SEL_POV[,.(OLA, DTM, R_mm_den)]
+  SEL_RECLIMB_ALL = RECLIMBS_obs[OLA == IDS[a]]
+  SEL_RECLIMB_ALL = SEL_RECLIMB_ALL[,.(DTM, t, posinlimb, reclimbnum, R)]
+  
+  BF_CH = Chapman_filter(Q = SEL_POV[, R_mm_den], a = 0.925)
+  BF_BRUT_CH = Chapman_filter(Q = SEL_POV[, R_mm_den], a = VEC_K_BRUT_CH[a])
+  BF_LANG_CH = Chapman_filter(Q = SEL_POV[, R_mm_den], a = VEC_K_LANG_CH[a])
+  BF_CM = Chapman_MAxwell_filter(Q = SEL_POV[, R_mm_den], a = 0.925)
+  BF_BRUT_CM = Chapman_MAxwell_filter(Q = SEL_POV[, R_mm_den], a = VEC_K_BRUT_CM[a])
+  BF_LANG_CM = Chapman_MAxwell_filter(Q = SEL_POV[, R_mm_den], a = VEC_K_LANG_CM[a])
+  
+  BF_COMP = data.frame(matrix(nrow = nrow(SEL_POV), ncol = 8))
+  names(BF_COMP) = c('OLA', 'DTM', 'CH', 'BRUT_CH', 'LANG_CH', 'CM', 'BRUT_CM', 'LANG_CM')
+  BF_COMP[, 'OLA'] = SEL_POV[, OLA]
+  BF_COMP[, 'DTM'] = SEL_POV[, DTM]
+  BF_COMP[, 'CH'] = BF_CH
+  BF_COMP[, 'BRUT_CH'] = BF_BRUT_CH
+  BF_COMP[, 'LANG_CH'] = BF_LANG_CH
+  BF_COMP[, 'CM'] = BF_CM
+  BF_COMP[, 'BRUT_CM'] = BF_BRUT_CM
+  BF_COMP[, 'LANG_CM'] = BF_LANG_CM
+  
+  BF_COMP = merge(BF_COMP, SEL_RECLIMB_ALL, by = 'DTM')
+  RES_KGE[a, 'KGE_0925_CH'] = KGE(obs = BF_COMP[, 'R'], sim = BF_COMP[, 'CH'], na.rm = TRUE)
+  RES_KGE[a, 'KGE_BRUT_CH'] = KGE(obs = BF_COMP[, 'R'], sim = BF_COMP[, 'BRUT_CH'], na.rm = TRUE)
+  RES_KGE[a, 'KGE_LANG_CH'] = KGE(obs = BF_COMP[, 'R'], sim = BF_COMP[, 'LANG_CH'], na.rm = TRUE)
+  RES_KGE[a, 'KGE_0925_CM'] = KGE(obs = BF_COMP[, 'R'], sim = BF_COMP[, 'CM'], na.rm = TRUE)
+  RES_KGE[a, 'KGE_BRUT_CM'] = KGE(obs = BF_COMP[, 'R'], sim = BF_COMP[, 'BRUT_CM'], na.rm = TRUE)
+  RES_KGE[a, 'KGE_LANG_CM'] = KGE(obs = BF_COMP[, 'R'], sim = BF_COMP[, 'LANG_CM'], na.rm = TRUE)
+  }
+
+DTA_graf = data.frame(matrix(nrow = nrow(RES_KGE), ncol = 8))
+names(DTA_graf) = c('KGE_0925_CH', 'KGE_kal_CH', 'KGE_BRUT_CH', 'KGE_LANG_CH', 'KGE_0925_CM', 'KGE_kal_CM', 'KGE_BRUT_CM', 'KGE_LANG_CM')
+DTA_graf[, 1] = RES_KGE[, 2]
+DTA_graf[, 2] = ALFA_CH_CM[FILTR == 'CH', KGE]
+DTA_graf[, 3] = RES_KGE[, 3]
+DTA_graf[, 4] = RES_KGE[, 4]
+DTA_graf[, 5] = RES_KGE[, 5]
+DTA_graf[, 6] = ALFA_CH_CM[FILTR == 'CM', KGE]
+DTA_graf[, 7] = RES_KGE[, 6]
+DTA_graf[, 8] = RES_KGE[, 7]
+
+#KGE CH a CM
+boxplot(DTA_graf, las = 2)
+
+#porovnani alfy pro CH
+plot(ALFA_CH_CM[FILTR == 'CH', ALFA], VEC_K_BRUT_CH, xlab = 'alfa kal.', 
+     ylab = 'alfa Brut.', xlim = c(0.85,1), ylim = c(0.85,1))
+abline(0, 1, col = 'red')
+
+plot(ALFA_CH_CM[FILTR == 'CH', ALFA], VEC_K_LANG_CH, xlab = 'alfa kal.', 
+     ylab = 'alfa Lang', xlim = c(0.85,1), ylim = c(0.85,1))
+abline(0, 1, col = 'red')
+
+plot(VEC_K_BRUT_CH, VEC_K_LANG_CH, xlab = 'alfa Brut.', 
+     ylab = 'alfa Lang.', xlim = c(0.85,1), ylim = c(0.85,1))
+abline(0, 1, col = 'red')
+
+#porovnani alfy pro CM
+plot(ALFA_CH_CM[FILTR == 'CM', ALFA], VEC_K_BRUT_CM, xlab = 'alfa kal.', 
+     ylab = 'alfa Brut.', xlim = c(0.85,1), ylim = c(0.85,1))
+abline(0, 1, col = 'red')
+
+plot(ALFA_CH_CM[FILTR == 'CM', ALFA], VEC_K_LANG_CM, xlab = 'alfa kal.', 
+     ylab = 'alfa Lang.', xlim = c(0.85,1), ylim = c(0.85,1))
+abline(0, 1, col = 'red')
+
+plot(VEC_K_BRUT_CM, VEC_K_LANG_CM, xlab = 'alfa Brut.', 
+     ylab = 'alfa Lang.', xlim = c(0.85,1), ylim = c(0.85,1))
+abline(0, 1, col = 'red')
