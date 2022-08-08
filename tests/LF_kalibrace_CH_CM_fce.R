@@ -85,7 +85,7 @@ RES_FIL = rbindlist(RES_FIL)
 setwd('C:/Users/hermanovsky/Documents/dev/lowflow/tests/data/RES')
 saveRDS(RES_FIL, 'kalibrace_CH_CM.rds')
 
-#vypocet CR a BFImax dle procent
+#vypocet RC a BFImax dle procent, RC pak pouzity jako alfy pro CH a CM
 RES_ALL_POV_PROC = list()
 
 for(a in 1 : length(IDS)){
@@ -114,13 +114,14 @@ RES_ALL_POV_PROC = rbindlist(RES_ALL_POV_PROC)
 setwd('C:/Users/hermanovsky/Documents/dev/lowflow/tests/data/RES')
 saveRDS(RES_ALL_POV_PROC, 'Proc_CR_BFImax_BRUT_LANG.rds')
 
-#prumerne alfy pro CH a CM
+#vypocet prumerne alfy pro CH a CM z kalibrace
 setwd('C:/Users/hermanovsky/Documents/dev/lowflow/tests/data/RES')
-ALFA_CH_CM = readRDS('kalibrace_CH_CM.rds')
-PROCENTA = readRDS('Proc_CR_BFImax_BRUT_LANG.rds')
+ALFA_CH_CM = readRDS('kalibrace_CH_CM.rds') #alfy z kalibrace
+PROCENTA = readRDS('Proc_CR_BFImax_BRUT_LANG.rds') #vypoctene RC a BFImax na zaklade procent
 ALFA_PRUM_CH = mean(ALFA_CH_CM[FILTR == 'CH', ALFA])
 ALFA_PRUM_CM = mean(ALFA_CH_CM[FILTR == 'CM', ALFA])
 
+#vypocet prumerne alfy pro jednotliva procenta
 PRUMERY = data.frame(matrix(nrow = 100, ncol = 7))
 names(PRUMERY) = c('PROC', 'PRUM_ALFA_BRUT', 'PRUM_ALFA_LANG', 'DIF_CH_BR', 'DIF_CH_LN', 'DIF_CM_BR', 'DIF_CM_LN')
 for(a in 1 : 100){
@@ -133,6 +134,7 @@ PRUMERY[, 'DIF_CH_LN'] = abs(PRUMERY[, 'PRUM_ALFA_LANG'] - ALFA_PRUM_CH)
 PRUMERY[, 'DIF_CM_BR'] = abs(PRUMERY[, 'PRUM_ALFA_BRUT'] - ALFA_PRUM_CM)
 PRUMERY[, 'DIF_CM_LN'] = abs(PRUMERY[, 'PRUM_ALFA_LANG'] - ALFA_PRUM_CM)
 
+#nalezani procenta, ktere dava prumer alf, ktery je nejpodobnejsi prumeru alf z kalibrace
 PROC_BRUT_CH = PRUMERY[which(PRUMERY[, 'DIF_CH_BR'] == min(PRUMERY[, 'DIF_CH_BR'])), 'PROC']
 PROC_LANG_CH = PRUMERY[which(PRUMERY[, 'DIF_CH_LN'] == min(PRUMERY[, 'DIF_CH_LN'])), 'PROC']
 PROC_BRUT_CM = PRUMERY[which(PRUMERY[, 'DIF_CM_BR'] == min(PRUMERY[, 'DIF_CM_BR'])), 'PROC']
@@ -143,7 +145,30 @@ VEC_K_LANG_CH = PROCENTA[PROC == PROC_LANG_CH, RC_Brut]
 VEC_K_BRUT_CM = PROCENTA[PROC == PROC_BRUT_CM, RC_Brut]
 VEC_K_LANG_CM = PROCENTA[PROC == PROC_LANG_CM, RC_Brut]
 
-#vypocet lowflow a KGE
+setwd('C:/Users/hermanovsky/Documents/dev/lowflow/tests/data/RES')
+saveRDS(PRUMERY, 'Dif_alfa_Brut_Lang.rds')
+
+#nalezeni procenta, ktere dava alfy nejpodobnejsi kalibraci
+setwd('C:/Users/hermanovsky/Documents/dev/lowflow/tests/data/RES')
+ALFA_CH_CM = readRDS('kalibrace_CH_CM.rds') #alfy z kalibrace
+PROCENTA = readRDS('Proc_CR_BFImax_BRUT_LANG.rds') #vypoctene RC a BFImax na zaklade procent
+ALFA_CH_KAL = ALFA_CH_CM[FILTR == 'CH', ALFA]
+ALFA_CM_KAL = ALFA_CH_CM[FILTR == 'CM', ALFA]
+
+RES_DIF = data.frame(matrix(nrow = 100, ncol = 5))
+names(RES_DIF) = c('PROC', 'CH_Brut', 'CH_Lang', 'CM_Brut', 'CM_Lang')
+for(a in 1 : 100){
+  RES_DIF[a, 'PROC'] = a / 100
+  SEL_PROC = PROCENTA[PROC == (a / 100)]
+  RES_DIF[a, 'CH_Brut'] = sum(abs(ALFA_CH_KAL - SEL_PROC[, RC_Brut]))
+  RES_DIF[a, 'CH_Lang'] = sum(abs(ALFA_CH_KAL - SEL_PROC[, RC_Lang]))
+  RES_DIF[a, 'CM_Brut'] = sum(abs(ALFA_CM_KAL - SEL_PROC[, RC_Brut]))
+  RES_DIF[a, 'CM_Lang'] = sum(abs(ALFA_CM_KAL - SEL_PROC[, RC_Lang]))
+  }
+
+
+#vypocet lowflow a KGE pro alfa = 0.925 a alfy urcene jako recesni konstanty dle Brut a Lang 
+#(alfy odpovidaji procentu, jehoz prumer je nejpodobnejsi prumeru alf z kalibrace) 
 RES_KGE = data.frame(matrix(nrow = length(IDS), ncol = 7))
 names(RES_KGE) = c('OLA', 'KGE_0925_CH', 'KGE_BRUT_CH', 'KGE_LANG_CH', 'KGE_0925_CM', 'KGE_BRUT_CM', 'KGE_LANG_CM')
 
@@ -182,16 +207,56 @@ for(a in 1 : length(IDS)){
   RES_KGE[a, 'KGE_LANG_CM'] = KGE(obs = BF_COMP[, 'R'], sim = BF_COMP[, 'LANG_CM'], na.rm = TRUE)
   }
 
-DTA_graf = data.frame(matrix(nrow = nrow(RES_KGE), ncol = 8))
-names(DTA_graf) = c('KGE_0925_CH', 'KGE_kal_CH', 'KGE_BRUT_CH', 'KGE_LANG_CH', 'KGE_0925_CM', 'KGE_kal_CM', 'KGE_BRUT_CM', 'KGE_LANG_CM')
-DTA_graf[, 1] = RES_KGE[, 2]
-DTA_graf[, 2] = ALFA_CH_CM[FILTR == 'CH', KGE]
-DTA_graf[, 3] = RES_KGE[, 3]
-DTA_graf[, 4] = RES_KGE[, 4]
-DTA_graf[, 5] = RES_KGE[, 5]
-DTA_graf[, 6] = ALFA_CH_CM[FILTR == 'CM', KGE]
-DTA_graf[, 7] = RES_KGE[, 6]
-DTA_graf[, 8] = RES_KGE[, 7]
+setwd('C:/Users/hermanovsky/Documents/dev/lowflow/tests/data/RES')
+saveRDS(RES_KGE, 'KGE_CH_CM_0925_Brut_Lang_proc.rds')
+
+#grafy vysledku
+setwd('C:/Users/hermanovsky/Documents/dev/lowflow/tests/data/RES')
+KAL_CH_CM = readRDS('kalibrace_CH_CM.rds')
+PROC_CH_CM = readRDS('KGE_CH_CM_0925_Brut_Lang_proc.rds')
+DIFS = readRDS('Dif_alfa_Brut_Lang.rds')
+PROCENTA = readRDS('Proc_CR_BFImax_BRUT_LANG.rds')
+
+#porovnani alf kal x alf Brut / Lang
+ALFA_KAL_CH = KAL_CH_CM[FILTR == 'CH', ALFA]
+ALFA_KAL_CM = KAL_CH_CM[FILTR == 'CM', ALFA]
+
+PROC_BRUT_CH = DIFS[which(DIFS[, 'DIF_CH_BR'] == min(DIFS[, 'DIF_CH_BR'])), 'PROC']
+PROC_LANG_CH = DIFS[which(DIFS[, 'DIF_CH_LN'] == min(DIFS[, 'DIF_CH_LN'])), 'PROC']
+PROC_BRUT_CM = DIFS[which(DIFS[, 'DIF_CM_BR'] == min(DIFS[, 'DIF_CM_BR'])), 'PROC']
+PROC_LANG_CM = DIFS[which(DIFS[, 'DIF_CM_LN'] == min(DIFS[, 'DIF_CM_LN'])), 'PROC']
+
+VEC_K_BRUT_CH = PROCENTA[PROC == PROC_BRUT_CH, RC_Brut]
+VEC_K_LANG_CH = PROCENTA[PROC == PROC_LANG_CH, RC_Brut]
+VEC_K_BRUT_CM = PROCENTA[PROC == PROC_BRUT_CM, RC_Brut]
+VEC_K_LANG_CM = PROCENTA[PROC == PROC_LANG_CM, RC_Brut]
+
+plot(ALFA_KAL_CH, VEC_K_BRUT_CH, xlim = c(0.8, 1), ylim = c(0.8, 1), xlab = 'alfa kal.', ylab = 'alfa proc.')
+abline(0, 1, col = 'red')
+plot(ALFA_KAL_CH, VEC_K_LANG_CH, xlim = c(0.8, 1), ylim = c(0.8, 1), xlab = 'alfa kal.', ylab = 'alfa proc.')
+abline(0, 1, col = 'red')
+plot(ALFA_KAL_CM, VEC_K_BRUT_CM, xlim = c(0.8, 1), ylim = c(0.8, 1), xlab = 'alfa kal.', ylab = 'alfa proc.')
+abline(0, 1, col = 'red')
+plot(ALFA_KAL_CM, VEC_K_LANG_CM, xlim = c(0.8, 1), ylim = c(0.8, 1), xlab = 'alfa kal.', ylab = 'alfa proc.')
+abline(0, 1, col = 'red')
+
+#porovnani KGE pro al;fa = 0.925, alfa kal. a afly dle procent
+DTA_graf = data.frame(matrix(nrow = nrow(PROC_CH_CM), ncol = 8))
+names(DTA_graf) = c('0925_CH', 'kal_CH', 'BRUT_CH', 'LANG_CH', '0925_CM', 'kal_CM', 'BRUT_CM', 'LANG_CM')
+DTA_graf[, 1] = PROC_CH_CM[, 2]
+DTA_graf[, 2] = KAL_CH_CM[FILTR == 'CH', KGE]
+DTA_graf[, 3] = PROC_CH_CM[, 3]
+DTA_graf[, 4] = PROC_CH_CM[, 4]
+DTA_graf[, 5] = PROC_CH_CM[, 5]
+DTA_graf[, 6] = KAL_CH_CM[FILTR == 'CM', KGE]
+DTA_graf[, 7] = PROC_CH_CM[, 6]
+DTA_graf[, 8] = PROC_CH_CM[, 7]
+
+boxplot(DTA_graf, las = 2)
+
+###################
+
+
 
 #KGE CH a CM
 boxplot(DTA_graf, las = 2)
