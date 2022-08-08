@@ -166,11 +166,39 @@ for(a in 1 : 100){
   RES_DIF[a, 'CM_Lang'] = sum(abs(ALFA_CM_KAL - SEL_PROC[, RC_Lang]))
   }
 
+setwd('C:/Users/hermanovsky/Documents/dev/lowflow/tests/data/RES')
+saveRDS(RES_DIF, 'Dif_alfa_Brut_Lang_nejpod_kal.rds')
 
 #vypocet lowflow a KGE pro alfa = 0.925 a alfy urcene jako recesni konstanty dle Brut a Lang 
-#(alfy odpovidaji procentu, jehoz prumer je nejpodobnejsi prumeru alf z kalibrace) 
-RES_KGE = data.frame(matrix(nrow = length(IDS), ncol = 7))
-names(RES_KGE) = c('OLA', 'KGE_0925_CH', 'KGE_BRUT_CH', 'KGE_LANG_CH', 'KGE_0925_CM', 'KGE_BRUT_CM', 'KGE_LANG_CM')
+#(alfy jsou vypocteny na zaklade procenta, ktere vede k alfam, jejichz prumer odpovida prumeru kalibracnich alf, nebo alfy jsou vypocteny na zaklade procenta, ktere dava alfy co nejpodobnejsi kalibracnim alfam)
+
+setwd('C:/Users/hermanovsky/Documents/dev/lowflow/tests/data/RES')
+DIF_PRUM = readRDS('Dif_alfa_Brut_Lang.rds')
+DIF_NPOD = readRDS('Dif_alfa_Brut_Lang_nejpod_kal.rds')
+PROCENTA = readRDS('Proc_CR_BFImax_BRUT_LANG.rds')
+
+PROC_BRUT_CH_PRUM = DIF_PRUM[which(DIF_PRUM[, 'DIF_CH_BR'] == min(DIF_PRUM[, 'DIF_CH_BR'])), 'PROC']
+PROC_LANG_CH_PRUM = DIF_PRUM[which(DIF_PRUM[, 'DIF_CH_LN'] == min(DIF_PRUM[, 'DIF_CH_LN'])), 'PROC']
+PROC_BRUT_CM_PRUM = DIF_PRUM[which(DIF_PRUM[, 'DIF_CM_BR'] == min(DIF_PRUM[, 'DIF_CM_BR'])), 'PROC']
+PROC_LANG_CM_PRUM = DIF_PRUM[which(DIF_PRUM[, 'DIF_CM_LN'] == min(DIF_PRUM[, 'DIF_CM_LN'])), 'PROC']
+
+PROC_BRUT_CH_NPOD = DIF_NPOD[which(DIF_NPOD[, 'CH_Brut'] == min(DIF_NPOD[, 'CH_Brut'])), 'PROC']
+PROC_LANG_CH_NPOD = DIF_NPOD[which(DIF_NPOD[, 'CH_Lang'] == min(DIF_NPOD[, 'CH_Lang'])), 'PROC']
+PROC_BRUT_CM_NPOD = DIF_NPOD[which(DIF_NPOD[, 'CM_Brut'] == min(DIF_NPOD[, 'CM_Brut'])), 'PROC']
+PROC_LANG_CM_NPOD = DIF_NPOD[which(DIF_NPOD[, 'CM_Lang'] == min(DIF_NPOD[, 'CM_Lang'])), 'PROC']
+
+VEC_K_BRUT_CH_PRUM = PROCENTA[PROC == PROC_BRUT_CH_PRUM, RC_Brut]
+VEC_K_LANG_CH_PRUM = PROCENTA[PROC == PROC_LANG_CH_PRUM, RC_Brut]
+VEC_K_BRUT_CM_PRUM = PROCENTA[PROC == PROC_BRUT_CM_PRUM, RC_Brut]
+VEC_K_LANG_CM_PRUM = PROCENTA[PROC == PROC_LANG_CM_PRUM, RC_Brut]
+
+VEC_K_BRUT_CH_NPOD = PROCENTA[PROC == PROC_BRUT_CH_NPOD, RC_Brut]
+VEC_K_LANG_CH_NPOD = PROCENTA[PROC == PROC_LANG_CH_NPOD, RC_Brut]
+VEC_K_BRUT_CM_NPOD = PROCENTA[PROC == PROC_BRUT_CM_NPOD, RC_Brut]
+VEC_K_LANG_CM_NPOD = PROCENTA[PROC == PROC_LANG_CM_NPOD, RC_Brut]
+
+RES_KGE = data.frame(matrix(nrow = length(IDS), ncol = 11))
+names(RES_KGE) = c('OLA', 'KGE_0925_CH', 'KGE_BRUT_CH_PRUM', 'KGE_LANG_CH_PRUM', 'KGE_BRUT_CH_NPOD', 'KGE_LANG_CH_NPOD', 'KGE_0925_CM', 'KGE_BRUT_CM_PRUM', 'KGE_LANG_CM_PRUM', 'KGE_BRUT_CM_NPOD', 'KGE_LANG_CM_NPOD')
 
 for(a in 1 : length(IDS)){
   print(a)
@@ -181,30 +209,42 @@ for(a in 1 : length(IDS)){
   SEL_RECLIMB_ALL = SEL_RECLIMB_ALL[,.(DTM, t, posinlimb, reclimbnum, R)]
   
   BF_CH = Chapman_filter(Q = SEL_POV[, R_mm_den], a = 0.925)
-  BF_BRUT_CH = Chapman_filter(Q = SEL_POV[, R_mm_den], a = VEC_K_BRUT_CH[a])
-  BF_LANG_CH = Chapman_filter(Q = SEL_POV[, R_mm_den], a = VEC_K_LANG_CH[a])
+  BF_BRUT_CH_PRUM = Chapman_filter(Q = SEL_POV[, R_mm_den], a = VEC_K_BRUT_CH_PRUM[a])
+  BF_LANG_CH_PRUM = Chapman_filter(Q = SEL_POV[, R_mm_den], a = VEC_K_LANG_CH_PRUM[a])
+  BF_BRUT_CH_NPOD = Chapman_filter(Q = SEL_POV[, R_mm_den], a = VEC_K_BRUT_CH_NPOD[a])
+  BF_LANG_CH_NPOD = Chapman_filter(Q = SEL_POV[, R_mm_den], a = VEC_K_LANG_CH_NPOD[a])
   BF_CM = Chapman_MAxwell_filter(Q = SEL_POV[, R_mm_den], a = 0.925)
-  BF_BRUT_CM = Chapman_MAxwell_filter(Q = SEL_POV[, R_mm_den], a = VEC_K_BRUT_CM[a])
-  BF_LANG_CM = Chapman_MAxwell_filter(Q = SEL_POV[, R_mm_den], a = VEC_K_LANG_CM[a])
+  BF_BRUT_CM_PRUM = Chapman_MAxwell_filter(Q = SEL_POV[, R_mm_den], a = VEC_K_BRUT_CM_PRUM[a])
+  BF_LANG_CM_PRUM = Chapman_MAxwell_filter(Q = SEL_POV[, R_mm_den], a = VEC_K_LANG_CM_PRUM[a])
+  BF_BRUT_CM_NPOD = Chapman_MAxwell_filter(Q = SEL_POV[, R_mm_den], a = VEC_K_BRUT_CM_NPOD[a])
+  BF_LANG_CM_NPOD = Chapman_MAxwell_filter(Q = SEL_POV[, R_mm_den], a = VEC_K_LANG_CM_NPOD[a])
   
-  BF_COMP = data.frame(matrix(nrow = nrow(SEL_POV), ncol = 8))
-  names(BF_COMP) = c('OLA', 'DTM', 'CH', 'BRUT_CH', 'LANG_CH', 'CM', 'BRUT_CM', 'LANG_CM')
+  BF_COMP = data.frame(matrix(nrow = nrow(SEL_POV), ncol = 12))
+  names(BF_COMP) = c('OLA', 'DTM', 'CH', 'BRUT_CH_PRUM', 'LANG_CH_PRUM', 'BRUT_CH_NPOD', 'LANG_CH_NPOD', 'CM', 'BRUT_CM_PRUM', 'LANG_CM_PRUM', 'BRUT_CM_NPOD', 'LANG_CM_NPOD')
   BF_COMP[, 'OLA'] = SEL_POV[, OLA]
   BF_COMP[, 'DTM'] = SEL_POV[, DTM]
   BF_COMP[, 'CH'] = BF_CH
-  BF_COMP[, 'BRUT_CH'] = BF_BRUT_CH
-  BF_COMP[, 'LANG_CH'] = BF_LANG_CH
+  BF_COMP[, 'BRUT_CH_PRUM'] = BF_BRUT_CH_PRUM
+  BF_COMP[, 'LANG_CH_PRUM'] = BF_LANG_CH_PRUM
+  BF_COMP[, 'BRUT_CH_NPOD'] = BF_BRUT_CH_NPOD
+  BF_COMP[, 'LANG_CH_NPOD'] = BF_LANG_CH_NPOD
   BF_COMP[, 'CM'] = BF_CM
-  BF_COMP[, 'BRUT_CM'] = BF_BRUT_CM
-  BF_COMP[, 'LANG_CM'] = BF_LANG_CM
+  BF_COMP[, 'BRUT_CM_PRUM'] = BF_BRUT_CM_PRUM
+  BF_COMP[, 'LANG_CM_PRUM'] = BF_LANG_CM_PRUM
+  BF_COMP[, 'BRUT_CM_NPOD'] = BF_BRUT_CM_NPOD
+  BF_COMP[, 'LANG_CM_NPOD'] = BF_LANG_CM_NPOD
   
   BF_COMP = merge(BF_COMP, SEL_RECLIMB_ALL, by = 'DTM')
   RES_KGE[a, 'KGE_0925_CH'] = KGE(obs = BF_COMP[, 'R'], sim = BF_COMP[, 'CH'], na.rm = TRUE)
-  RES_KGE[a, 'KGE_BRUT_CH'] = KGE(obs = BF_COMP[, 'R'], sim = BF_COMP[, 'BRUT_CH'], na.rm = TRUE)
-  RES_KGE[a, 'KGE_LANG_CH'] = KGE(obs = BF_COMP[, 'R'], sim = BF_COMP[, 'LANG_CH'], na.rm = TRUE)
+  RES_KGE[a, 'KGE_BRUT_CH_PRUM'] = KGE(obs = BF_COMP[, 'R'], sim = BF_COMP[, 'BRUT_CH_PRUM'], na.rm = TRUE)
+  RES_KGE[a, 'KGE_LANG_CH_PRUM'] = KGE(obs = BF_COMP[, 'R'], sim = BF_COMP[, 'LANG_CH_PRUM'], na.rm = TRUE)
+  RES_KGE[a, 'KGE_BRUT_CH_NPOD'] = KGE(obs = BF_COMP[, 'R'], sim = BF_COMP[, 'BRUT_CH_NPOD'], na.rm = TRUE)
+  RES_KGE[a, 'KGE_LANG_CH_NPOD'] = KGE(obs = BF_COMP[, 'R'], sim = BF_COMP[, 'LANG_CH_NPOD'], na.rm = TRUE)
   RES_KGE[a, 'KGE_0925_CM'] = KGE(obs = BF_COMP[, 'R'], sim = BF_COMP[, 'CM'], na.rm = TRUE)
-  RES_KGE[a, 'KGE_BRUT_CM'] = KGE(obs = BF_COMP[, 'R'], sim = BF_COMP[, 'BRUT_CM'], na.rm = TRUE)
-  RES_KGE[a, 'KGE_LANG_CM'] = KGE(obs = BF_COMP[, 'R'], sim = BF_COMP[, 'LANG_CM'], na.rm = TRUE)
+  RES_KGE[a, 'KGE_BRUT_CM_PRUM'] = KGE(obs = BF_COMP[, 'R'], sim = BF_COMP[, 'BRUT_CM_PRUM'], na.rm = TRUE)
+  RES_KGE[a, 'KGE_LANG_CM_PRUM'] = KGE(obs = BF_COMP[, 'R'], sim = BF_COMP[, 'LANG_CM_PRUM'], na.rm = TRUE)
+  RES_KGE[a, 'KGE_BRUT_CM_NPOD'] = KGE(obs = BF_COMP[, 'R'], sim = BF_COMP[, 'BRUT_CM_NPOD'], na.rm = TRUE)
+  RES_KGE[a, 'KGE_LANG_CM_NPOD'] = KGE(obs = BF_COMP[, 'R'], sim = BF_COMP[, 'LANG_CM_NPOD'], na.rm = TRUE)
   }
 
 setwd('C:/Users/hermanovsky/Documents/dev/lowflow/tests/data/RES')
