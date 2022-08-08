@@ -94,11 +94,13 @@ MED_KGE_PRUM_ALFA_BFIm = data.frame(matrix(nrow = 100, ncol = 9))
 names(MED_KGE_PRUM_ALFA_BFIm) = c('PROC', 'medKGE_Brut', 'medKGE_Lang', 'prumALFA_Brut', 'prumBFIm_Brut', 'proc_Brut', 'prumALFA_Lang', 'prumBFIm_Lang', 'proc_Lang')
 
 b = 1
-PROCT = 0.6
+PROCT = 0.01
 SEL_POV = Q_R[OLA == IDS[b]]
 SEL_POV = SEL_POV[,.(OLA, DTM, R_mm_den)]
 BF_nPOD = EK_bezPodm(Q = SEL_POV[, R_mm_den], a = PROCENTA[OLA == IDS[b] & PROC == PROCT, RC_Brut], BFImax = PROCENTA[OLA == IDS[b] & PROC == PROCT, BFI_max_Brut])
 BF_POD = Eckhardt_filter(Q = SEL_POV[, R_mm_den], a = PROCENTA[OLA == IDS[b] & PROC == PROCT, RC_Brut], BFI_max = PROCENTA[OLA == IDS[b] & PROC == PROCT, BFI_max_Brut])
+print(PROCENTA[OLA == IDS[b] & PROC == PROCT, BFI_max_Brut])
+print(PROCENTA[OLA == IDS[b] & PROC == PROCT, RC_Brut])
 rng = 1 : 200
 plot(SEL_POV[rng, R_mm_den], type = 'l', col = 'red')
 lines(BF_nPOD[rng], col = 'blue')
@@ -159,7 +161,7 @@ lines(MED_KGE_PRUM_ALFA_BFIm[, 'medKGE_Lang'] ~ MED_KGE_PRUM_ALFA_BFIm[, 'PROC']
 plot(MED_KGE_PRUM_ALFA_BFIm[, 'prumALFA_Brut'] ~ MED_KGE_PRUM_ALFA_BFIm[, 'PROC'],  type = 'l', xlab = 'proc.', ylab = 'alfa', col = 'red', ylim = c(0.5, 1))
 lines(MED_KGE_PRUM_ALFA_BFIm[, 'prumALFA_Lang'] ~ MED_KGE_PRUM_ALFA_BFIm[, 'PROC'], col = 'blue')
 
-plot(MED_KGE_PRUM_ALFA_BFIm[, 'prumBFIm_Brut'] ~ MED_KGE_PRUM_ALFA_BFIm[, 'PROC'],  type = 'l', xlab = 'proc.', ylab = 'alfa', col = 'red', ylim = c(0, 1))
+plot(MED_KGE_PRUM_ALFA_BFIm[, 'prumBFIm_Brut'] ~ MED_KGE_PRUM_ALFA_BFIm[, 'PROC'],  type = 'l', xlab = 'proc.', ylab = 'BFImax', col = 'red', ylim = c(0, 1))
 lines(MED_KGE_PRUM_ALFA_BFIm[, 'prumBFIm_Lang'] ~ MED_KGE_PRUM_ALFA_BFIm[, 'PROC'], col = 'blue')
 
 
