@@ -20,10 +20,36 @@ saveRDS(aa,"tests/data/RES/acka_charpov.rds")
 
 aa[PROC %in% 0.6 ,plot(RC_Brut,Stream_density)]
 str(aa)
+
+cc=aa[PROC %in% 0.6 ,]
+cca=na.omit(cc)
 library(randomForestSRC)
-rf <-rfsrc(BFI_max_Brut~slope_MEAN+CN_mean+lesy_podil+Stream_density+area+ornapuda_podil+delkariverm, data = aa[PROC %in% 0.6 ,],ntree=1000)
-rf <-rfsrc(RC_Brut~BFI_max_Brut, data = aa[PROC %in% 0.6 ,])
+rf <-rfsrc(log(RC_Brut)~slope_MEAN+CN_mean+lesy_podil+Stream_density+area+ornapuda_podil+delkariverm, data = cca)
+# rf <-rfsrc(RC_Brut~slope_MEAN+CN_mean+lesy_podil+Stream_density+area+ornapuda_podil+delkariverm, data = cca,mtry=4,ntree=10000)
 plot(rf)
+o <-vimp(rf)
+plot(o)
+rf
 
 
-rfsrc(RC_Brut~., data = aa[PROC %in% 0.6 ,])
+dd <- readRDS("tests/data/RES/kalibrace_CH_CM.rds")
+setkey(dd,OLA)
+setkey(dta,OLA)
+merge(dd,dta)
+ee <- dd[dta,]
+
+ee<-na.omit(ee)
+ee[,area:=Shape_Area / 1000/1000]
+ee[,delkariverm:=stream_SUM_Shape_Length / 1000]
+
+rf <-rfsrc(ALFA~slope_MEAN+CN_mean+lesy_podil+Stream_density+area+ornapuda_podil+delkariverm, data = ee[FILTR %in% "CM",],importance = TRUE)
+
+plot(rf)
+o <-vimp(rf)
+plot(o)
+rf
+
+o.pred <- predict(object = rf, ee)
+plot(get.mv.predicted(o.pred),log(ee$ALFA))
+
+cor(c(get.mv.predicted(o.pred)),ee$ALFA)
