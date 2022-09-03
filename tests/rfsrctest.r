@@ -40,16 +40,25 @@ ee <- dd[dta,]
 
 ee<-na.omit(ee)
 ee[,area:=Shape_Area / 1000/1000]
+ee[FILTR=="CM",delkariverm:=stream_SUM_Shape_Length / 1000]
 ee[,delkariverm:=stream_SUM_Shape_Length / 1000]
 
-rf <-rfsrc(ALFA~slope_MEAN+CN_mean+lesy_podil+Stream_density+area+ornapuda_podil+delkariverm, data = ee[FILTR %in% "CM",],importance = TRUE)
+rf <-rfsrc(ALFA~slope_STD+elev_STD_1+slope_MEAN+CN_mean+lesy_podil+Stream_density+area+ornapuda_podil+delkariverm, data = ee[FILTR=="CH",],importance = TRUE, splitrule = 'random',ntree=1000,mtry=1)
+# rf <-rfsrc(ALFA~slope_STD+elev_STD_1+slope_MEAN+CN_mean+lesy_podil+Stream_density+area+ornapuda_podil+delkariverm, data = ee,importance = TRUE, splitrule = 'random',ntree=200)
+so <- subsample(rf)
+vimpCI <- extract.subsample(so)$var.jk.sel.Z
+vimpCI
+plot.subsample(so)
+plot(so)
 
 plot(rf)
 o <-vimp(rf)
 plot(o)
 rf
 
-o.pred <- predict(object = rf, ee)
-plot(get.mv.predicted(o.pred),log(ee$ALFA))
+summary(lm(ALFA~, data = ee[FILTR=="CH",]))
+o.pred <- predict(object = rf, ee[FILTR=="CH",])
+plot(get.mv.predicted(o.pred),ee[FILTR=="CH",ALFA])
 
-cor(c(get.mv.predicted(o.pred)),ee$ALFA)
+cor(c(get.mv.predicted(o.pred)),ee[FILTR=="CH",ALFA])
+
